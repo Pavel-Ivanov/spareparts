@@ -9,15 +9,26 @@ class SparepartController extends Controller
 {
     public function store()
     {
-        Sparepart::create($this->validateRequest());
+        $sparepart = Sparepart::create($this->validateRequest());
+
+        return redirect($sparepart->path());
     }
 
-    protected function update(Sparepart $sparepart)
+    public function update(Sparepart $sparepart)
     {
         $sparepart->update($this->validateRequest());
+
+        return redirect($sparepart->path());
     }
 
-    private function validateRequest()
+    public function destroy(Sparepart $sparepart)
+    {
+        $sparepart->delete();
+
+        return redirect('/spareparts');
+    }
+
+    protected function validateRequest()
     {
         return \request()->validate([
             'name'         => 'required',

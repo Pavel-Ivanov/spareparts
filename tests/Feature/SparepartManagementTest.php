@@ -13,15 +13,15 @@ class SparepartManagementTest extends TestCase
     /** @test */
     public function a_sparepart_can_be_added_to_the_range()
     {
-        $this->withoutExceptionHandling();
-
         $response = $this->post('/spareparts', [
             'name' => 'Sparepart name',
             'manufacturer' => 'Renault',
         ]);
 
-        $response->assertOk();
+        $sparepart = Sparepart::first();
+
         $this->assertCount(1, Sparepart::all());
+        $response->assertRedirect($sparepart->path());
     }
 
     /** @test */
@@ -33,7 +33,6 @@ class SparepartManagementTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('name');
-
     }
 
     /** @test */
@@ -50,17 +49,15 @@ class SparepartManagementTest extends TestCase
     /** @test */
     public function a_sparepart_can_be_updated()
     {
-        $this->withoutExceptionHandling();
-
         // Создаем запись
         $this->post('/spareparts', [
             'name' => 'Sparepart name',
             'manufacturer' => 'Manufacturer',
         ]);
-        //
+        // Получаем созданную запись из БД
         $sparepart = Sparepart::first();
-        //
-        $response = $this->patch('/spareparts/'. $sparepart->id, [
+        // Изменяем созданную запись и получаем результат
+        $response = $this->patch($sparepart->path(), [
             'name' => 'New Sparepart name',
             'manufacturer' => 'New manufacturer',
         ]);
@@ -68,5 +65,27 @@ class SparepartManagementTest extends TestCase
         $this->assertEquals('New Sparepart name', Sparepart::first()->name);
         $this->assertEquals('New manufacturer', Sparepart::first()->manufacturer);
 
+        $response->assertRedirect($sparepart->fresh()->path());
+    }
+
+    /** @test */
+    public function a_sparepart_can_be_deleted()
+    {
+        $this->withoutExceptionHandling();
+        // Создаем запись
+        $this->post('/spareparts', [
+            'name' => 'Sparepart name',
+            'manufacturer' => 'Manufacturer',
+        ]);
+        // Получаем созданную запись из БД
+        $sparepart = Sparepart::first();
+        // Проверяем наличие 1 записи в БД
+        $this->assertCount(1, Sparepart::all());
+        // Удаляем созданную запись
+        $response = $this->delete($sparepart->path());
+        // Проверяем отстутствие записей в БД
+        $this->assertCount(0, Sparepart::all());
+        // Проверяем редирект на index
+        $response->assertRedirect('/spareparts');
     }
 }
